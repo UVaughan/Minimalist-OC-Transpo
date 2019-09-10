@@ -53,7 +53,7 @@ else
     public IEnumerable<int> filtered => stops.Where(pair =>
     {
         // first check if stop number matches
-        if (Int32.TryParse(searchTerm, out var searchKey) && pair.Key.Equals(searchKey))
+        if (pair.Key.ToString().Contains(searchTerm))
         {
             return true;
         }
