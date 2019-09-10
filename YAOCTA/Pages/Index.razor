@@ -27,7 +27,7 @@
         @foreach (var key in display)
             {
         <tr>
-            <th scope="row">@key.ToString()</th>
+            <th scope="row" style="width:100px;">@key.ToString()</th>
             <td><NavLink href="@String.Format("stops/{0}", key.ToString())">@stops[key].FormatStopName()</NavLink></td>
         </tr>
             }
