@@ -1,0 +1,188 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+
+<div class="jumbotron">
+    <h1 class="display-4">Minimalist OC Transpo App</h1>
+</div>
+<div class="input-group mb-3">
+        <input type="search"
+                   class="form-control"
+                   placeholder="Search by name or stop number..."
+                   aria-label="Search"
+                   aria-describedby="basic-addon1"
+                   @bind-value="searchTerm"
+                   @bind-value:event="oninput"/>
+    
+</div>
+@if (filtered != null)
+{
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th scope="col">Stop #</th>
+                <th scope="col">Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var key in display)
+            {
+                <tr>
+                    <th scope="row">@key.ToString()</th>
+                    <td><NavLink href="@String.Format("stops/{0}", key.ToString())">@stops[key].FormatStopName()</NavLink></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (display.Count() < filtered.Count())
+    {
+        <button type="button" class="btn btn-outline-dark" onclick="@(new Action(() => LoadMore()))">Load More</button>
+    }
+}
+else
+{
+    <p><em>No results found</em></p>
+}
+
+@code {
+    public const int incrementNumber = 10;
+
+    private int currentSize = 57;
+
+    public IDictionary<int, string> stops;
+
+    public IEnumerable<int> filtered => stops.Where(pair =>
+    {
+        // first check if stop number matches
+        if (Int32.TryParse(searchTerm, out var searchKey) && pair.Key.Equals(searchKey))
+        {
+            return true;
+        }
+
+        var terms = searchTerm.Split(' ');
+        foreach (var term in terms)
+        {
+            if (!pair.Value.FormatStopName().ToLower().RemoveFrenchCharacters().Contains(term.ToLower().RemoveFrenchCharacters()))
+            {
+                return false;
+            }
+        }
+        return true;
+    }).Select(x => x.Key);
+
+    public IEnumerable<int> display => filtered.Take(currentSize);
+
+    string searchTerm { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // get hardcoded stations first, stop data is incorrect for them
+        var dict = GetStations();
+        var assembly = Assembly.GetExecutingAssembly();
+        var resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith("stops.txt"));
+
+        using (var stream = assembly.GetManifestResourceStream(resourceName))
+        using (var reader = new StreamReader(stream))
+        {
+            var result = reader.ReadToEnd();
+            var lines = result.Split(
+            new[] { "\r\n", "\r", "\n" },
+            StringSplitOptions.None
+            );
+            lines = lines.Skip(1).ToArray();
+            foreach (var line in lines)
+            {
+                if (line == "")
+                {
+                    continue;
+                }
+                var terms = line.Split(',');
+                try
+                {
+                    var key = Int32.Parse(terms[1]);
+                    var value = terms[2];
+
+                    if (dict.ContainsKey(key))
+                    {
+                        continue;
+                    }
+
+                    dict.Add(key, value);
+                }
+                catch (FormatException e)
+                {
+                    Console.WriteLine("Could not extract integer from " + terms[1]);
+                }
+            }
+            stops = dict;
+        }
+    }
+
+    private void LoadMore()
+    {
+        var incAmount = ((display.Count() + incrementNumber) > stops.Keys.Count()) ? (stops.Keys.Count() - display.Count()) : incrementNumber;
+        currentSize += incAmount;
+    }
+
+    public static IDictionary<int, string> GetStations()
+    {
+        var stations = new Dictionary<int, string>();
+        stations.Add(3039, "Airport");
+        stations.Add(3004, "Albert / Bay");
+        stations.Add(3002, "Albert / Bank");
+        stations.Add(3003, "Albert / Kent");
+        stations.Add(3001, "Albert / Metcalfe");
+        stations.Add(3045, "Barrhaven Centre");
+        stations.Add(3017, "Baseline");
+        stations.Add(3050, "Bayshore");
+        stations.Add(3060, "Bayview");
+        stations.Add(3034, "Billings Bridge");
+        stations.Add(3027, "Blair");
+        stations.Add(3061, "Carling");
+        stations.Add(3062, "Carleton");
+        stations.Add(3013, "Dominion");
+        stations.Add(3055, "Eagleson");
+        stations.Add(3043, "Fallowfield");
+        stations.Add(3037, "Greenboro");
+        stations.Add(3035, "Heron");
+        stations.Add(3023, "Hurdman");
+        stations.Add(3016, "Iris");
+        stations.Add(3070, "Jeanne d'Arc");
+        stations.Add(3020, "Laurier");
+        stations.Add(3010, "LeBreton");
+        stations.Add(3022, "Lees");
+        stations.Add(3041, "Leitrim");
+        stations.Add(3014, "Lincoln Fields");
+        stations.Add(3046, "Longfields");
+        stations.Add(3030, "Lycée Claudel");
+        stations.Add(3000, "Mackenzie King");
+        stations.Add(3047, "Marketplace");
+        stations.Add(3076, "Millennium");
+        stations.Add(3063, "Mooney's Bay");
+        stations.Add(3048, "Nepean Woods");
+        stations.Add(3028, "Orléans");
+        stations.Add(3075, "Orléans Park & Ride");
+        stations.Add(3019, "Pinecrest");
+        stations.Add(3033, "Pleasant Park");
+        stations.Add(3015, "Queensway");
+        stations.Add(3009, "Rideau Centre");
+        stations.Add(3032, "Riverside");
+        stations.Add(3040, "Riverview");
+        stations.Add(3059, "Scotiabank Place");
+        stations.Add(3038, "South Keys");
+        stations.Add(3005, "Slater / Bay");
+        stations.Add(3007, "Slater / Bank");
+        stations.Add(3006, "Slater / Kent");
+        stations.Add(3008, "Slater / Metcalfe");
+        stations.Add(3031, "Smyth");
+        stations.Add(3025, "St. Laurent");
+        stations.Add(3044, "Strandherd");
+        stations.Add(3018, "Teron");
+        stations.Add(3058, "Terry Fox");
+        stations.Add(3024, "Train");
+        stations.Add(3029, "Trim");
+        stations.Add(3011, "Tunney's Pasture");
+        stations.Add(3036, "Walkley");
+        stations.Add(3012, "Westboro");
+        return stations;
+    }
+}

@@ -1,0 +1,143 @@
+﻿@page "/stops/{stopNumber:int}"
+@inject NavigationManager NavigationManager
+@inject YAOCTA.Data.BusStopService BusStopService
+
+@if (stop == null)
+{
+    <p><em>@state</em></p>
+}
+else
+{
+    <div class="jumbotron">
+        <h1 class="display-4">@StringManipulation.FormatStopName(stop.StopDescription)</h1>
+        <button type="button" class="btn btn-outline-dark" onclick="@(new Action(() => Back()))">Back</button>
+        <button type="button" class="btn btn-outline-dark" onclick="@(new Action(async () => await RefreshStop()))">Refresh</button>
+    </div>
+
+    @if (stop.Routes.Route.Count == 0)
+    {
+        <p><em>No service</em></p>
+    }
+    else
+    {
+        <div class="row">
+            <div class="card-columns">
+                @foreach (var route in stop.Routes.Route)
+                {
+
+                    @if (route.Trips.Count > 0)
+                    {
+
+                        <div class="card">
+                            <div class="card-header">
+                                <b>@route.RouteNo @route.Direction</b> to @route.RouteHeading
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group">
+                                    @foreach (var trip in route.Trips)
+                                    {
+                                        <li class="list-group-item">@GetTripMessage(trip, (route.RouteNo == "1" || route.RouteNo == "2") ? VehicleType.Train : VehicleType.Bus)</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+
+                    }
+                }
+            </div>
+        </div>
+    }
+}
+@code {
+    [Parameter]
+    public int stopNumber { get; set; }
+
+    public BusStop stop;
+
+    public string state = "Loading data...";
+
+    private const string shortBus = "Single bus";
+    private const string longBus = "Stretch bus";
+    private const string tallBus = "Double decker";
+    private const string unknown = "Unknown";
+
+    private const string stopNumberParameter = "stopNo";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var parameters = new Dictionary<string, string>();
+        parameters.Add(stopNumberParameter, stopNumber.ToString());
+        try
+        {
+            stop = (await BusStopService.SendRequest<RouteSummaryForStopWrapper>("GetNextTripsForStopAllRoutes", parameters)).GetRouteSummaryForStopResult;
+        }
+        catch (Exception e)
+        {
+            state = "Could not reach OC Transpo servers";
+        }
+    }
+
+    private async Task RefreshStop()
+    {
+        var parameters = new Dictionary<string, string>();
+        parameters.Add(stopNumberParameter, stopNumber.ToString());
+        try
+        {
+            stop = (await BusStopService.SendRequest<RouteSummaryForStopWrapper>("GetNextTripsForStopAllRoutes", parameters)).GetRouteSummaryForStopResult;
+            this.StateHasChanged();
+        }
+        catch (Exception e)
+        {
+
+        }
+    }
+
+    public string GetTripMessage(Trip trip, VehicleType vehicleType)
+    {
+        var arrivalTime = GetArrivalTime(trip);
+        // TODO: refactor this for readability
+        return (vehicleType == VehicleType.Train ? "Train" : GetBusType(trip)) + " " +
+            ((arrivalTime <= 0) ?
+            "arriving now" :
+            (arrivalTime.ToString() + " minute" + (arrivalTime == 1 ? "" : "s") + " away"
+            + ((trip.AdjustmentAge != "-1" && trip.GPSSpeed != "") ? (" by GPS, moving at " + trip.GPSSpeed + " kph") : "")));
+    }
+
+    public int GetArrivalTime(Trip trip)
+    {
+        var adjusted = Int32.Parse(trip.AdjustedScheduleTime);
+        var age = Convert.ToDecimal(trip.AdjustmentAge, CultureInfo.CurrentCulture);
+        if (age < 0)
+        {
+            return adjusted;
+        }
+        var arrivalTime = adjusted - age;
+        return (int)Math.Round(arrivalTime);
+    }
+
+    public string GetBusType(Trip trip)
+    {
+        if (trip.BusType.Length == 0)
+        {
+            return unknown;
+        }
+        switch (trip.BusType[0])
+        {
+            case '4':
+                return trip.BusType.Contains("DD") ? tallBus : shortBus;
+            case '6':
+                return longBus;
+            case 'D':
+                return tallBus;
+            default:
+                return trip.BusType.Contains("DD") ? tallBus : unknown;
+        }
+    }
+
+    public enum VehicleType { Train, Bus }
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo(NavigationManager.BaseUri);
+    }
+}
