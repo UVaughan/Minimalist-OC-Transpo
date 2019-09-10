@@ -56,10 +56,10 @@ else
 
     public string state = "Loading data...";
 
-    private const string shortBus = "Single bus";
-    private const string longBus = "Stretch bus";
-    private const string tallBus = "Double decker";
-    private const string unknown = "Unknown";
+    private const string ShortBus = "Single bus";
+    private const string LongBus = "Stretch bus";
+    private const string TallBus = "Double decker";
+    private const string Unknown = "Unknown";
 
     public bool refreshing = false;
 
@@ -118,18 +118,18 @@ else
     {
         if (trip.BusType.Length == 0)
         {
-            return unknown;
+            return Unknown;
         }
         switch (trip.BusType[0])
         {
             case '4':
-                return trip.BusType.Contains("DD") ? tallBus : shortBus;
+                return trip.BusType.Contains("DD") ? TallBus : ShortBus;
             case '6':
-                return longBus;
+                return LongBus;
             case 'D':
-                return tallBus;
+                return TallBus;
             default:
-                return trip.BusType.Contains("DD") ? tallBus : unknown;
+                return trip.BusType.Contains("DD") ? TallBus : Unknown;
         }
     }
 
