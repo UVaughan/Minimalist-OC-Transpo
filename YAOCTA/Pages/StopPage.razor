@@ -11,7 +11,7 @@ else
     <div class="jumbotron">
         <h1 class="display-4">@StringManipulation.FormatStopName(stop.StopDescription)</h1>
         <button type="button" class="btn btn-outline-dark" onclick="@(new Action(() => Back()))">Back</button>
-        <button type="button" class="btn btn-outline-dark" onclick="@(new Action(async () => await RefreshStop()))">Refresh</button>
+        <button type="button" class="btn btn-outline-dark" disabled="@refreshing" onclick="@(new Action(async () => await RefreshStop()))">Refresh</button>
     </div>
 
     @if (stop.Routes.Route.Count == 0)
@@ -61,15 +61,13 @@ else
     private const string tallBus = "Double decker";
     private const string unknown = "Unknown";
 
-    private const string stopNumberParameter = "stopNo";
+    public bool refreshing = false;
 
     protected override async Task OnInitializedAsync()
     {
-        var parameters = new Dictionary<string, string>();
-        parameters.Add(stopNumberParameter, stopNumber.ToString());
         try
         {
-            stop = (await BusStopService.SendRequest<RouteSummaryForStopWrapper>("GetNextTripsForStopAllRoutes", parameters)).GetRouteSummaryForStopResult;
+            stop = await BusStopService.GetStopInfo(stopNumber);
         }
         catch (Exception e)
         {
@@ -79,16 +77,17 @@ else
 
     private async Task RefreshStop()
     {
-        var parameters = new Dictionary<string, string>();
-        parameters.Add(stopNumberParameter, stopNumber.ToString());
+        refreshing = true;
         try
         {
-            stop = (await BusStopService.SendRequest<RouteSummaryForStopWrapper>("GetNextTripsForStopAllRoutes", parameters)).GetRouteSummaryForStopResult;
+            stop = await BusStopService.GetStopInfo(stopNumber);
+            refreshing = false;
             this.StateHasChanged();
         }
         catch (Exception e)
         {
-
+            refreshing = false;
+            this.StateHasChanged();
         }
     }
 

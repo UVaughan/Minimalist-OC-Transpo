@@ -5,42 +5,42 @@
     <h1 class="display-4">Minimalist OC Transpo App</h1>
 </div>
 <div class="input-group mb-3">
-        <input type="search"
-                   class="form-control"
-                   placeholder="Search by name or stop number..."
-                   aria-label="Search"
-                   aria-describedby="basic-addon1"
-                   @bind-value="searchTerm"
-                   @bind-value:event="oninput"/>
-    
+    <input type="search"
+           class="form-control"
+           placeholder="Search by name or stop number..."
+           aria-label="Search"
+           aria-describedby="basic-addon1"
+           @bind-value="searchTerm"
+           @bind-value:event="oninput" />
+
 </div>
 @if (filtered != null)
 {
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th scope="col">Stop #</th>
-                <th scope="col">Description</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var key in display)
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Stop #</th>
+            <th scope="col">Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var key in display)
             {
-                <tr>
-                    <th scope="row">@key.ToString()</th>
-                    <td><NavLink href="@String.Format("stops/{0}", key.ToString())">@stops[key].FormatStopName()</NavLink></td>
-                </tr>
+        <tr>
+            <th scope="row">@key.ToString()</th>
+            <td><NavLink href="@String.Format("stops/{0}", key.ToString())">@stops[key].FormatStopName()</NavLink></td>
+        </tr>
             }
-        </tbody>
-    </table>
-    @if (display.Count() < filtered.Count())
+    </tbody>
+</table>
+@if (display.Count() < filtered.Count())
     {
-        <button type="button" class="btn btn-outline-dark" onclick="@(new Action(() => LoadMore()))">Load More</button>
+<button type="button" class="btn btn-outline-dark" onclick="@(new Action(() => LoadMore()))">Load More</button>
     }
 }
 else
 {
-    <p><em>No results found</em></p>
+<p><em>No results found</em></p>
 }
 
 @code {
