@@ -66,13 +66,23 @@ namespace YAOCTA.Data
             }
         }
 
+        public bool IsStation(int stopCode)
+        {
+            return GetStations().ContainsKey(stopCode);
+        }
+
+        public string GetStation(int stopCode)
+        {
+            return GetStations()[stopCode];
+        }
+
         public IDictionary<int, string> GetStations() => new Dictionary<int, string>
         {
             {3039, "Airport"},
-            {3004, "Albert / Bay"},
-            {3002, "Albert / Bank"},
-            {3003, "Albert / Kent"},
-            {3001, "Albert / Metcalfe"},
+            {3004, "Albert and Bay"},
+            {3002, "Albert and Bank"},
+            {3003, "Albert and Kent"},
+            {3001, "Albert and Metcalfe"},
             {3045, "Barrhaven Centre"},
             {3017, "Baseline"},
             {3050, "Bayshore"},
@@ -109,20 +119,20 @@ namespace YAOCTA.Data
             {3063, "Mooney's Bay"},
             {3048, "Nepean Woods"},
             {3028, "Orléans"},
-            {3075, "Place D'Orléans Park & Ride"},
             {3052, "Parliament"},
             {3010, "Pimisi (Lebreton)"},
             {3019, "Pinecrest"},
+            {3075, "Place D'Orléans Park & Ride"},
             {3033, "Pleasant Park"},
             {3015, "Queensway"},
             {3009, "Rideau"},
             {3032, "Riverside"},
             {3040, "Riverview"},
             {3038, "South Keys"},
-            {3005, "Slater / Bay"},
-            {3007, "Slater / Bank"},
-            {3006, "Slater / Kent"},
-            {3008, "Slater / Metcalfe"},
+            {3005, "Slater and Bay"},
+            {3007, "Slater and Bank"},
+            {3006, "Slater and Kent"},
+            {3008, "Slater and Metcalfe"},
             {3031, "Smyth"},
             {3025, "St-Laurent"},
             {3044, "Strandherd"},

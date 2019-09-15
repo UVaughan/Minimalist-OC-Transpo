@@ -9,7 +9,7 @@
 else
 {
     <div class="jumbotron">
-        <h1 class="display-4">@StringManipulation.FormatStopName(stop.StopDescription)</h1>
+        <h1 class="display-4">@(BusStopService.IsStation(stopNumber) ? BusStopService.GetStation(stopNumber) : stop.StopDescription.FormatStopName())</h1>
         <button type="button" class="btn btn-outline-dark" onclick="@(new Action(() => Back()))">Back</button>
         <button type="button" class="btn btn-outline-dark" disabled="@refreshing" onclick="@(new Action(async () => await RefreshStop()))">Refresh</button>
     </div>
@@ -25,7 +25,7 @@ else
                 @foreach (var route in stop.Routes.Route)
                 {
 
-                    @if (route.Trips.Count > 0)
+                    @if (route != null && route.Trips.Count > 0)
                     {
 
                         <div class="card">
@@ -42,6 +42,7 @@ else
                             </div>
                         </div>
 
+                    } else {
                     }
                 }
             </div>

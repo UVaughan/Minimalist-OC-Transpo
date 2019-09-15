@@ -29,7 +29,7 @@
             {
         <tr>
             <th scope="row" style="width:100px;">@key.ToString()</th>
-            <td><NavLink href="@String.Format("stops/{0}", key.ToString())">@stops[key].FormatStopName()</NavLink></td>
+            <td><NavLink href="@String.Format("stops/{0}", key.ToString())">@(BusStopService.IsStation(key) ? BusStopService.GetStation(key) : stops[key].FormatStopName())</NavLink></td>
         </tr>
             }
     </tbody>
@@ -47,7 +47,7 @@ else
 @code {
     public const int incrementNumber = 10;
 
-    private int currentSize = 100;
+    private int currentSize = 66;
 
     public IDictionary<int, string> stops;
 
