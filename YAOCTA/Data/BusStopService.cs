@@ -138,9 +138,9 @@ namespace YAOCTA.Data
             {3044, "Strandherd"},
             {3018, "Teron"},
             {3058, "Terry Fox"},
+            {3024, "Tremblay (Via-Rail)"},
             {3029, "Trim"},
             {3011, "Tunney's Pasture"},
-            {3024, "Tremblay"},
             {3021, "uOttawa"},
             {3036, "Walkley"},
             {3012, "Westboro"}
