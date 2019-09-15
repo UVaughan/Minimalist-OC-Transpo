@@ -29,7 +29,7 @@
             {
         <tr>
             <th scope="row" style="width:100px;">@key.ToString()</th>
-            <td><NavLink href="@String.Format("stops/{0}", key.ToString())">@(BusStopService.IsStation(key) ? BusStopService.GetStation(key) : stops[key].FormatStopName())</NavLink></td>
+            <td><NavLink href="@String.Format("stops/{0}", key.ToString())">@(BusStopService.IsStation(key) ? BusStopService.GetStation(key) : stops[key])</NavLink></td>
         </tr>
             }
     </tbody>
@@ -49,6 +49,7 @@ else
 
     private int currentSize = 66;
 
+    // TODO: Cache stops in BusStopService instead
     public IDictionary<int, string> stops;
 
     private string searchTerm { get; set; } = "";
@@ -64,7 +65,7 @@ else
         var terms = searchTerm.Split(' ');
         foreach (var term in terms)
         {
-            if (!pair.Value.FormatStopName().ToLower().RemoveFrenchCharacters().Contains(term.ToLower().RemoveFrenchCharacters()))
+            if (!pair.Value.ToLower().RemoveFrenchCharacters().Contains(term.ToLower().RemoveFrenchCharacters()))
             {
                 return false;
             }
@@ -76,7 +77,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        stops = BusStopService.GetAllStops();
+        stops = await BusStopService.GetAllStops();
     }
 
     private void LoadMore()

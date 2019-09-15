@@ -15,6 +15,8 @@ namespace YAOCTA.Data
         private const string StopNumberParameter = "stopNo";
         private const string StopInfoEndpoint = "GetNextTripsForStopAllRoutes";
 
+        private IDictionary<string, IList<int>> duplicates = new Dictionary<string, IList<int>>();
+
         public async Task<BusStop> GetStopInfo(int stopNumber)
         {
             var parameters = new Dictionary<string, string>();
@@ -22,17 +24,29 @@ namespace YAOCTA.Data
             var result = await ApiClient.SendRequest<RouteSummaryForStopWrapper>(StopInfoEndpoint, parameters);
             return result.GetRouteSummaryForStopResult;
         }
-        public IDictionary<int, string> GetAllStops()
+
+        public IList<int> GetDuplicates(string stopName)
+        {
+            if(!duplicates.ContainsKey(stopName))
+            {
+                return new List<int>();
+            }
+            return duplicates[stopName];
+        }
+
+        public async Task<IDictionary<int, string>> GetAllStops()
         {
             // get hardcoded stations first, stop data is incorrect for them
             var dict = GetStations();
+
+            // get embedded resource
             var assembly = Assembly.GetExecutingAssembly();
             var resourceName = assembly.GetManifestResourceNames().Single(str => str.EndsWith("stops.txt"));
 
             using (var stream = assembly.GetManifestResourceStream(resourceName))
             using (var reader = new StreamReader(stream))
             {
-                var result = reader.ReadToEnd();
+                var result = await reader.ReadToEndAsync();
                 var lines = result.Split(
                 new[] { "\r\n", "\r", "\n" },
                 StringSplitOptions.None
@@ -47,15 +61,22 @@ namespace YAOCTA.Data
                     var terms = line.Split(',');
                     try
                     {
-                        var key = Int32.Parse(terms[1]);
-                        var value = terms[2];
+                        var number = int.Parse(terms[1]);
+                        var name = terms[2].FormatStopName();
 
-                        if (dict.ContainsKey(key))
+                        if (!duplicates.ContainsKey(name))
+                        {
+                            duplicates.Add(name, new List<int>());
+                        }
+
+                        duplicates[name].Add(number);
+
+                        if (dict.ContainsKey(number))
                         {
                             continue;
                         }
 
-                        dict.Add(key, value);
+                        dict.Add(number, name);
                     }
                     catch (FormatException e)
                     {

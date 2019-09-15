@@ -9,10 +9,25 @@
 else
 {
     <div class="jumbotron">
-        <h1 class="display-4">@(BusStopService.IsStation(stopNumber) ? BusStopService.GetStation(stopNumber) : stop.StopDescription.FormatStopName())</h1>
+        <h1 class="display-4">@GetStopName()</h1>
         <button type="button" class="btn btn-outline-dark" onclick="@(new Action(() => Back()))">Back</button>
         <button type="button" class="btn btn-outline-dark" disabled="@refreshing" onclick="@(new Action(async () => await RefreshStop()))">Refresh</button>
     </div>
+
+    @if (GetDuplicates().Count > 0)
+    {
+        <div style="padding-bottom: 20px;">
+            <h4>
+                <b>
+                    Other stops at this location
+                </b>
+            </h4>
+            @foreach (var duplicate in GetDuplicates())
+            {
+                <button type="button" class="btn btn-outline-dark" onclick="@(new Action(async () => await SwitchStops(duplicate)))">@duplicate.ToString()</button>
+            }
+        </div>
+    }
 
     @if (stop.Routes.Route.Count == 0)
     {
@@ -42,7 +57,9 @@ else
                             </div>
                         </div>
 
-                    } else {
+                    }
+                    else
+                    {
                     }
                 }
             </div>
@@ -63,6 +80,8 @@ else
     private const string Unknown = "Unknown";
 
     public bool refreshing = false;
+
+    private IList<int> GetDuplicates() => BusStopService.GetDuplicates(GetStopName()).Where(x => x != stopNumber).Distinct().ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,6 +111,22 @@ else
         }
     }
 
+    private string GetStopName() =>
+        BusStopService.IsStation(stopNumber) ? BusStopService.GetStation(stopNumber) : stop.StopDescription.FormatStopName();
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo(NavigationManager.BaseUri);
+    }
+
+    private async Task SwitchStops(int stopNumber)
+    {
+        NavigationManager.NavigateTo(String.Format("{0}stops/{1}", NavigationManager.BaseUri, stopNumber));
+        this.stopNumber = stopNumber;
+        await RefreshStop();
+    }
+
+    // TODO: Move below methods to other classes
     public string GetTripMessage(Trip trip, VehicleType vehicleType)
     {
         var arrivalTime = GetArrivalTime(trip);
@@ -135,9 +170,4 @@ else
     }
 
     public enum VehicleType { Train, Bus }
-
-    private void Back()
-    {
-        NavigationManager.NavigateTo(NavigationManager.BaseUri);
-    }
 }
