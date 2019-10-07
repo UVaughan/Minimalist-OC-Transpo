@@ -37,30 +37,24 @@ else
     {
         <div class="row">
             <div class="card-columns">
-                @foreach (var route in stop.Routes.Route)
+                @foreach (var route in stop.Routes.Route
+                    .Where(x => x != null && x.Trips.Count > 0)
+                    .OrderBy(x => Int32.TryParse(x.RouteNo, out var result) ? result : 0))
                 {
 
-                    @if (route != null && route.Trips.Count > 0)
-                    {
-
-                        <div class="card">
-                            <div class="card-header">
-                                <b>@route.RouteNo @route.Direction</b> to @route.RouteHeading
-                            </div>
-                            <div class="card-body">
-                                <ul class="list-group">
-                                    @foreach (var trip in route.Trips)
-                                    {
-                                        <li class="list-group-item">@GetTripMessage(trip, (route.RouteNo == "1" || route.RouteNo == "2") ? VehicleType.Train : VehicleType.Bus)</li>
-                                    }
-                                </ul>
-                            </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <b>@route.RouteNo</b> to @route.RouteHeading
                         </div>
-
-                    }
-                    else
-                    {
-                    }
+                        <div class="card-body">
+                            <ul class="list-group">
+                                @foreach (var trip in route.Trips)
+                                {
+                                    <li class="list-group-item">@GetTripMessage(trip, (route.RouteNo == "1" || route.RouteNo == "2") ? VehicleType.Train : VehicleType.Bus)</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
                 }
             </div>
         </div>
